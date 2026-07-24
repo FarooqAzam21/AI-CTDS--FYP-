@@ -213,7 +213,7 @@ def _resolve_api_key(raw_key: str, db: Session, request: Request) -> AuthContext
     )
 
 
-def _resolve_jwt(token: str, db: Session) -> AuthContext:
+def _resolve_jwt(token: str, db: Session, request: Request) -> AuthContext:
     """Validate a JWT and return its AuthContext with permissions loaded."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -429,7 +429,7 @@ def get_auth_context(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return _resolve_jwt(jwt_token, db)
+    return _resolve_jwt(jwt_token, db, request)
 
 
 def get_current_user(
