@@ -1,11 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 pydantic
 pydantic-settings
 python-jose[cryptography]
 passlib[bcrypt]
-sqlalchemy
 python-multipart
 joblib
 scikit-learn
@@ -14,6 +13,10 @@ dnspython
 email-validator
 requests
 httpx
+psycopg2-binary
 psycopg[binary]
+supabase
 pyotp
-qrcode
+qrcode[pil]
+python-dotenv
+apscheduler
