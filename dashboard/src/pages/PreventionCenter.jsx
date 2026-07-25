@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../context/AuthContext';
+import GLOBAL_API_BASE from '../config/api';
 
 const PreventionCenter = () => {
   const { hasRole } = useAuth();
@@ -23,7 +24,7 @@ const PreventionCenter = () => {
   const [reasoning, setReasoning] = useState('');
   const [pagination, setPagination] = useState({ skip: 0, limit: 50, total: 0 });
 
-  const API_BASE = 'http://localhost:8000/api/v1/prevention';
+  const API_BASE = `${GLOBAL_API_BASE}/prevention`;
 
   const fetchBlockedEntities = async (skip = 0) => {
     try {

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+import API_BASE from '../config/api';
+
 const MonitoringCenterPage = () => {
   const [snapshot, setSnapshot] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/v1/monitoring').then((res) => setSnapshot(res.data)).catch(() => setSnapshot({ counts: { alerts: 0, scans: 0, users: 0 }, metrics: { counters: {} } }));
+    axios.get(`${API_BASE}/monitoring`).then((res) => setSnapshot(res.data)).catch(() => setSnapshot({ counts: { alerts: 0, scans: 0, users: 0 }, metrics: { counters: {} } }));
   }, []);
 
   return (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CheckSquare, XCircle, CheckCircle, AlertTriangle, Shield, Clock, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+import API_BASE from '../config/api';
 
 const ReviewQueuePage = () => {
     const [queueItems, setQueueItems] = useState([]);
@@ -12,10 +13,10 @@ const ReviewQueuePage = () => {
 
     const fetchQueue = async () => {
         try {
-            const res = await axios.get('http://localhost:8000/api/v1/fp/review-queue', { withCredentials: true });
+            const res = await axios.get(`${API_BASE}/fp/review-queue`, { withCredentials: true });
             setQueueItems(res.data.items);
             
-            const metricsRes = await axios.get('http://localhost:8000/api/v1/fp/metrics', { withCredentials: true });
+            const metricsRes = await axios.get(`${API_BASE}/fp/metrics`, { withCredentials: true });
             setMetrics(metricsRes.data);
         } catch (error) {
             console.error("Failed to fetch review queue", error);
@@ -30,7 +31,7 @@ const ReviewQueuePage = () => {
 
     const handleAction = async (id, action) => {
         try {
-            await axios.post(`http://localhost:8000/api/v1/fp/reports/${id}/${action}`, { notes: actionNotes }, { withCredentials: true });
+            await axios.post(`${API_BASE}/fp/reports/${id}/${action}`, { notes: actionNotes }, { withCredentials: true });
             setActionNotes('');
             setExpandedItem(null);
             fetchQueue(); // Refresh list
