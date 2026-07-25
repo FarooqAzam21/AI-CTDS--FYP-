@@ -26,5 +26,4 @@ ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "src/main.py"]
-Lines: 28
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

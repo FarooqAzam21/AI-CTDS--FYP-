@@ -234,9 +234,10 @@ def _resolve_jwt(token: str, db: Session, request: Request) -> AuthContext:
     except JWTError as e:
         print(f"JWTError: {e}")
         try:
+            import os
             from supabase import create_client
-            supabase_url = "https://ssegsbvpqmnwmzvqetye.supabase.co"
-            supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZWdzYnZwcW1ud216dnFldHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzM5MDgsImV4cCI6MjA5OTk0OTkwOH0.8b4r58X_I8jxO5Mp68SsRP-FFc1puuor9ULcFwVQ9uI"
+            supabase_url = os.getenv("SUPABASE_URL", "https://ssegsbvpqmnwmzvqetye.supabase.co")
+            supabase_key = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzZWdzYnZwcW1ud216dnFldHllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzM5MDgsImV4cCI6MjA5OTk0OTkwOH0.8b4r58X_I8jxO5Mp68SsRP-FFc1puuor9ULcFwVQ9uI")
             supabase = create_client(supabase_url, supabase_key)
             user_response = supabase.auth.get_user(token)
             
