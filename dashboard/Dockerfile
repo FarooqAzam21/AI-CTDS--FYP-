@@ -12,6 +12,12 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Pass Supabase env vars as build args (injected at build time by docker-compose)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_PUBLISHABLE_KEY
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_PUBLISHABLE_KEY=$VITE_SUPABASE_PUBLISHABLE_KEY
+
 # Build the application
 RUN npm run build
 
