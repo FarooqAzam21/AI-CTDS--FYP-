@@ -66,6 +66,18 @@ const LoginPage = ({ onLogin, onToggleForm }) => {
         }
 
         try {
+            const { data, error: supabaseError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (!supabaseError && data.session) {
+                localStorage.setItem('token', data.session.access_token);
+                onLogin(data.session.access_token);
+                return;
+            }
+
+            // Accounts created by earlier releases may only exist in the
+            // backend database, so retain this fallback during migration.
             const fd = new FormData();
             fd.append('username', email);
             fd.append('password', password);

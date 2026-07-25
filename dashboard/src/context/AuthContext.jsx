@@ -70,19 +70,8 @@ export const AuthProvider = ({ children }) => {
       setUser(data);
     } catch (error) {
       console.error('Auth error:', error);
-      // Decode JWT locally so the app still works when the profile endpoint is unreachable
-      try {
-        const payload = JSON.parse(atob(authToken.split('.')[1]));
-        setUser({
-          user_id: payload.sub,
-          role: 'workspace_admin',
-          permissions: ['scans:create', 'scans:read', 'alerts:read', 'alerts:write'],
-          email: '',
-        });
-      } catch {
-        // Token is completely invalid — clear it
-        setToken(null);
-      }
+      // Never grant a local role when the backend cannot validate the session.
+      setToken(null);
     } finally {
       setLoading(false);
     }

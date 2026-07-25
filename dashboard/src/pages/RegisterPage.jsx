@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
-import API_BASE from '../config/api';
 import { getOAuthRedirectUrl, supabase } from '../config/supabaseClient';
 import {
     Shield, Mail, Lock, User, Building, ArrowRight,
@@ -116,15 +114,30 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
 
         setLoading(true);
         try {
-            const { confirmPassword, ...payload } = form;
-            if (workspaceMode === 'create') delete payload.workspace_id;
-            else delete payload.workspace_name;
-            const res = await axios.post(`${API_BASE}/register`, payload);
-            const token = res.data.access_token;
-            localStorage.setItem('token', token);
-            onLogin(token);
+            const metadata = {
+                full_name: form.full_name.trim(),
+                ...(workspaceMode === 'join'
+                    ? { workspace_id: form.workspace_id.trim() }
+                    : { workspace_name: form.workspace_name.trim() }),
+            };
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email: form.email.trim(),
+                password: form.password,
+                options: {
+                    emailRedirectTo: getOAuthRedirectUrl(),
+                    data: metadata,
+                },
+            });
+            if (signUpError) throw signUpError;
+
+            if (data.session) {
+                localStorage.setItem('token', data.session.access_token);
+                onLogin(data.session.access_token);
+            } else {
+                setError('Account created. Check your email to confirm your account, then sign in.');
+            }
         } catch (err) {
-            setError(err.response?.data?.detail || 'Registration failed. Please try again.');
+            setError(err.message || 'Registration failed. Please try again.');
         } finally {
             setLoading(false);
         }
