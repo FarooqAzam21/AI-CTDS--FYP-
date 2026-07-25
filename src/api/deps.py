@@ -231,8 +231,11 @@ def _resolve_jwt(token: str, db: Session, request: Request) -> AuthContext:
             raise credentials_exception
         user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
         print(f"Found user locally: {user}")
-    except JWTError as e:
-        print(f"JWTError: {e}")
+    except JWTError:
+        # Supabase access tokens can use asymmetric signing (for example ES256)
+        # while locally issued application tokens use HS256. Validate non-local
+        # tokens with Supabase rather than treating the expected algorithm
+        # mismatch as an application authentication error.
         try:
             import os
             from supabase import create_client

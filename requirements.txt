@@ -5,6 +5,9 @@ pydantic
 pydantic-settings
 python-jose[cryptography]
 passlib[bcrypt]
+# passlib currently requires bcrypt 4.x; bcrypt 5.x raises a 72-byte error
+# during passlib's backend capability check and blocks OAuth user provisioning.
+bcrypt==4.0.1
 python-multipart
 joblib
 scikit-learn
