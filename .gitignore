@@ -1,5 +1,6 @@
 datasets/
 models/
+!src/models/
 *.csv
 *.pkl
 __pycache__/
