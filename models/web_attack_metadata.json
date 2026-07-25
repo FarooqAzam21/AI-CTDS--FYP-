@@ -1,0 +1,22 @@
+{
+  "artifact_version": "1.0",
+  "preprocessing_version": "web-payload-normalize-v1",
+  "model_type": "LogisticRegression",
+  "vectorizer_type": "TfidfVectorizer",
+  "feature_count": 1001,
+  "classes": [
+    "COMMAND INJECTION",
+    "CROSS-SITE SCRIPTING (XSS)",
+    "NORMAL",
+    "PATH TRAVERSAL",
+    "SQL INJECTION"
+  ],
+  "benign_label": "NORMAL",
+  "training_rows": 400,
+  "training_dataset": "datasets\\web_payloads.csv",
+  "random_state": 42,
+  "test_accuracy": 1.0,
+  "trained_at_utc": "2026-07-14T13:23:55.154014+00:00",
+  "python_version": "3.11.6",
+  "scikit_learn_version": "1.8.0"
+}

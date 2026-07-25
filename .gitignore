@@ -1,7 +1,8 @@
 datasets/
-models/
+models/*
+!models/*.pkl
+!models/*.json
 !src/models/
 *.csv
-*.pkl
 __pycache__/
 *.db
