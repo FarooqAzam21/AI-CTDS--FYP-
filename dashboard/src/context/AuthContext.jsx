@@ -89,8 +89,21 @@ export const AuthProvider = ({ children }) => {
       setUser(data);
     } catch (error) {
       console.error('Auth error:', error);
-      // Never grant a local role when the backend cannot validate the session.
-      setToken(null);
+      // Keep a verified Supabase user signed in if the workspace-profile API is
+      // temporarily unreachable (for example while the backend URL or CORS is
+      // being deployed). The fallback is deliberately a no-permission viewer,
+      // never an assumed administrator.
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      if (supabaseUser) {
+        setUser({
+          user_id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          role: 'viewer',
+          permissions: [],
+        });
+      } else {
+        setToken(null);
+      }
     } finally {
       setLoading(false);
     }
