@@ -15,12 +15,28 @@ const normalizeRole = (role) => roleAliases[role] || role || 'viewer';
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(!!token); // Loading only if we start with a token
+  // Keep the UI blocked until Supabase has inspected an OAuth callback or a
+  // previously persisted session.
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+
+    const restoreSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!active) return;
+      if (error) console.error('Unable to restore Supabase session:', error);
+
+      if (data.session) {
+        // Replace stale backend tokens after an OAuth redirect.
+        setToken(data.session.access_token);
+      } else if (!localStorage.getItem('token')) {
+        setLoading(false);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Only use Supabase token if we don't already have a backend token
-      if (session && !localStorage.getItem('token')) {
+      if (session) {
         setToken(session.access_token);
         if (event === 'SIGNED_IN') {
           fetch(`${API_BASE}/me/record-login`, {
@@ -31,7 +47,10 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
+    restoreSession();
+
     return () => {
+      active = false;
       subscription.unsubscribe();
     };
   }, []);

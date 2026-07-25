@@ -51,7 +51,12 @@ const PendingWorkspaceAccess = ({ onLogout }) => (
 function App() {
   const { isAuthenticated, login, logout, loading, hasRole, hasPermission, user } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [view, setView] = useState('landing'); // landing, login, register, app
+  const [view, setView] = useState(() => {
+    // If an OAuth callback cannot be validated, return to sign-in rather than
+    // unexpectedly showing the public landing page.
+    const params = new URLSearchParams(window.location.search);
+    return params.has('code') || params.has('error') ? 'login' : 'landing';
+  }); // landing, login, register, app
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogin = (token) => {
@@ -65,7 +70,15 @@ function App() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen bg-[#0a0a0a] text-white">Loading...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#09090B] text-white">
+        <div className="h-11 w-11 rounded-full border-2 border-white/15 border-t-[#FF6A3D] animate-spin" />
+        <div className="text-center">
+          <p className="font-semibold">Signing you in securely</p>
+          <p className="mt-1 text-sm text-slate-500">Restoring your session and workspace access…</p>
+        </div>
+      </div>
+    );
   }
 
   // Auth Routing
