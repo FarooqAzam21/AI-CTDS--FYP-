@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import API_BASE from '../config/api';
-import { supabase } from '../config/supabaseClient';
+import { getOAuthRedirectUrl, supabase } from '../config/supabaseClient';
 import {
     Shield, Mail, Lock, User, Building, ArrowRight,
     Loader, Eye, EyeOff, AlertCircle, CheckCircle, X
@@ -141,6 +141,7 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
         const { error: oauthError } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
+                redirectTo: getOAuthRedirectUrl(),
                 data: workspaceMode === 'join'
                     ? { workspace_id: form.workspace_id.trim() }
                     : { workspace_name: form.workspace_name.trim() },

@@ -66,6 +66,7 @@ services:
       args:
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
         VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY}
+        VITE_AUTH_REDIRECT_URL: ${VITE_AUTH_REDIRECT_URL}
     ports:
       - "80:80"
     depends_on:

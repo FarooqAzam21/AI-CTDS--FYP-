@@ -7,7 +7,7 @@ import {
     AlertCircle, CheckCircle, Zap, Activity, Globe,
     Network, BrainCircuit, Target
 } from 'lucide-react';
-import { supabase } from '../config/supabaseClient';
+import { getOAuthRedirectUrl, supabase } from '../config/supabaseClient';
 
 /* ── Shared InputField ───────────────────────────── */
 const InputField = ({ label, icon: Icon, type = 'text', placeholder, value, onChange, required, rightSlot, autoComplete }) => (
@@ -87,8 +87,12 @@ const LoginPage = ({ onLogin, onToggleForm }) => {
 
     const handleGoogleLogin = async () => {
         setLoading(true);
+        setError('');
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
+            options: {
+                redirectTo: getOAuthRedirectUrl(),
+            },
         });
         if (error) {
             setError(error.message);
