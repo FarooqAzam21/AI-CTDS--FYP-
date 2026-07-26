@@ -10,6 +10,7 @@ const SettingsPage = () => {
     const [apiKey, setApiKey] = useState(null);
     const [keys, setKeys] = useState([]);
     const [label, setLabel] = useState('Production Key');
+    const [websiteUrl, setWebsiteUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
@@ -33,7 +34,11 @@ const SettingsPage = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${API_BASE}/api-keys/create`, { label }, {
+            const response = await axios.post(`${API_BASE}/api-keys/create`, {
+                label,
+                integration_name: label,
+                website_url: websiteUrl.trim() || null,
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setApiKey(response.data.api_key);
@@ -91,14 +96,23 @@ const SettingsPage = () => {
                         <p className="text-xs text-gray-400">Credentials created below authorize remote pipelines (CI/CD, Webhooks) to interact with CyberGuard models.</p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <input
                             type="text"
                             className="glass-input"
                             value={label}
                             onChange={(e) => setLabel(e.target.value)}
-                            placeholder="Key Label (e.g., Staging-Pipeline)"
+                            placeholder="Website or integration name (e.g., Acme Store)"
                         />
+                        <input
+                            type="url"
+                            className="glass-input"
+                            value={websiteUrl}
+                            onChange={(e) => setWebsiteUrl(e.target.value)}
+                            placeholder="Website URL (optional)"
+                        />
+                    </div>
+                    <div>
                         <button className="btn btn-primary px-6" onClick={generateKey} disabled={loading}>
                             {loading ? <RefreshCw size={15} className="animate-spin" /> : <Key size={15} />}
                             {loading ? 'Generating...' : 'Create Key'}
@@ -135,7 +149,8 @@ const SettingsPage = () => {
                                 <table className="glass-table">
                                     <thead>
                                         <tr>
-                                            <th>Label</th>
+                                            <th>Integration</th>
+                                            <th>Website</th>
                                             <th>Created</th>
                                             <th>Status</th>
                                             <th className="text-right">Action</th>
@@ -144,7 +159,14 @@ const SettingsPage = () => {
                                     <tbody>
                                         {keys.map(key => (
                                             <tr key={key.id}>
-                                                <td className="font-bold text-white">{key.label}</td>
+                                                <td className="font-bold text-white">{key.integration_name || key.label}</td>
+                                                <td className="text-xs">
+                                                    {key.website_url ? (
+                                                        <a href={key.website_url} target="_blank" rel="noreferrer" className="text-cyber-info hover:underline">
+                                                            {key.website_url}
+                                                        </a>
+                                                    ) : <span className="text-gray-500">Not set</span>}
+                                                </td>
                                                 <td className="font-mono text-xs">{new Date(key.created_at).toLocaleDateString()}</td>
                                                 <td>
                                                     <span className="badge badge-success">Active</span>

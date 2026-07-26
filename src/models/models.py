@@ -122,6 +122,9 @@ class APIKey(Base):
     workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id"), nullable=False)
     key_hash = Column(String, unique=True, index=True, nullable=False)  # SHA-256, never plain text
     label = Column(String, nullable=False)
+    # Human-readable details for the system that uses this credential.
+    integration_name = Column(String, nullable=True)
+    website_url = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, index=True)
     # Expiration (None = non-expiring)
     expires_at = Column(DateTime(timezone=True), nullable=True)

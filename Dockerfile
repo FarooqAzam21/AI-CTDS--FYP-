@@ -26,6 +26,7 @@ EXPOSE 10000
 ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
-# Use a shell form so Render's runtime $PORT is expanded. `exec` preserves
-# clean signal handling for Uvicorn during deployments and shutdowns.
-CMD ["/bin/sh", "-c", "exec uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Apply pending schema changes before serving traffic. The migration helper
+# also handles legacy databases that predate Alembic version tracking.
+# `exec` preserves clean signal handling for Uvicorn during shutdowns.
+CMD ["/bin/sh", "-c", "python -m src.scripts.migrate_database && exec uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -49,6 +49,8 @@ def _hash_key(raw: str) -> str:
 # ── Request / Response schemas ─────────────────────────────────────────────
 class APIKeyCreateRequest(BaseModel):
     label: str = Field(..., min_length=1, max_length=128)
+    integration_name: Optional[str] = Field(None, min_length=1, max_length=128)
+    website_url: Optional[str] = Field(None, max_length=2048)
     expires_in_days: Optional[int] = Field(
         None,
         description="Number of days until key expires. Omit for non-expiring key.",
@@ -60,6 +62,8 @@ class APIKeyCreateRequest(BaseModel):
 class APIKeyListItem(BaseModel):
     id: str
     label: str
+    integration_name: Optional[str]
+    website_url: Optional[str]
     is_active: bool
     created_at: Optional[str]
     last_used: Optional[str]
@@ -77,6 +81,8 @@ class APIKeyListItem(BaseModel):
 class APIKeyCreateResponse(BaseModel):
     id: str
     label: str
+    integration_name: Optional[str]
+    website_url: Optional[str]
     api_key: str  # plaintext, shown only once
     expires_at: Optional[str]
     message: str = "Store this key securely — it will NOT be shown again."
@@ -85,6 +91,8 @@ class APIKeyCreateResponse(BaseModel):
 class APIKeyStatsResponse(BaseModel):
     id: str
     label: str
+    integration_name: Optional[str]
+    website_url: Optional[str]
     is_active: bool
     usage_count: int
     successful_requests: int
@@ -110,6 +118,8 @@ def _key_to_item(k: APIKey) -> APIKeyListItem:
     return APIKeyListItem(
         id=str(k.id),
         label=k.label,
+        integration_name=k.integration_name,
+        website_url=k.website_url,
         is_active=k.is_active,
         created_at=_fmt(k.created_at),
         last_used=_fmt(k.last_used),
@@ -166,6 +176,8 @@ def create_api_key(
         workspace_id=workspace.id,
         key_hash=_hash_key(raw_key),
         label=payload.label,
+        integration_name=payload.integration_name or payload.label,
+        website_url=payload.website_url or None,
         is_active=True,
         expires_at=expires_at,
         usage_count=0,
@@ -193,13 +205,19 @@ def create_api_key(
         module="api_keys",
         workspace_id=workspace.id,
         user_id=current_user.id,
-        metadata={"label": payload.label},
+        metadata={
+            "label": payload.label,
+            "integration_name": payload.integration_name or payload.label,
+            "website_url": payload.website_url or None,
+        },
     )
     db.commit()
 
     return APIKeyCreateResponse(
         id=str(new_key.id),
         label=new_key.label,
+        integration_name=new_key.integration_name,
+        website_url=new_key.website_url,
         api_key=raw_key,
         expires_at=_fmt(expires_at),
     )
@@ -262,6 +280,8 @@ def get_api_key_stats(
     return APIKeyStatsResponse(
         id=str(key.id),
         label=key.label,
+        integration_name=key.integration_name,
+        website_url=key.website_url,
         is_active=key.is_active,
         usage_count=key.usage_count or 0,
         successful_requests=key.successful_requests or 0,
@@ -358,6 +378,8 @@ def rotate_api_key(
     return APIKeyCreateResponse(
         id=str(key.id),
         label=key.label,
+        integration_name=key.integration_name,
+        website_url=key.website_url,
         api_key=raw_key,
         expires_at=_fmt(key.expires_at),
         message=(

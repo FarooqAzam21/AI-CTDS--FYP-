@@ -11,9 +11,12 @@ from src.models.models import Base
 from src.core.config import settings
 
 config = context.config
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+# ConfigParser reserves '%' for interpolation, while encoded database
+# passwords commonly contain values such as '%40' for '@'. Escape it only
+# while placing the URL into Alembic's config; get_main_option restores it.
+config.set_main_option('sqlalchemy.url', settings.DATABASE_URL.replace('%', '%%'))
 
-if config.config_file_name is not None:
+if config.config_file_name is not None and config.get_section("loggers"):
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
