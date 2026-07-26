@@ -18,12 +18,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port 8000
-EXPOSE 8000
+# Render supplies the public listening port through $PORT (normally 10000).
+# 8000 remains the local-development fallback.
+EXPOSE 10000
 
 # Set environment variables
 ENV PYTHONPATH=.
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use a shell form so Render's runtime $PORT is expanded. `exec` preserves
+# clean signal handling for Uvicorn during deployments and shutdowns.
+CMD ["/bin/sh", "-c", "exec uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

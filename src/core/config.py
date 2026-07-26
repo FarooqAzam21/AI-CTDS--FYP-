@@ -56,7 +56,13 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        # This is the canonical production dashboard. Keep it allowed even if
+        # Render has an outdated or incomplete CORS_ORIGINS environment value.
+        production_dashboard = "https://ai-ctds-fyp.vercel.app"
+        if production_dashboard not in origins:
+            origins.append(production_dashboard)
+        return origins
 
     # ── Trusted Reverse Proxies ───────────────────────────────────────────────
     # Comma-separated list of trusted proxy IPs/CIDRs.
