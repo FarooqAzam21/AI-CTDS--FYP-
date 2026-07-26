@@ -13,10 +13,12 @@ const ReviewQueuePage = () => {
 
     const fetchQueue = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/fp/review-queue`, { withCredentials: true });
+            const token = localStorage.getItem('token');
+            const config = { headers: token ? { Authorization: `Bearer ${token}` } : {} };
+            const res = await axios.get(`${API_BASE}/fp/review-queue`, config);
             setQueueItems(res.data.items);
             
-            const metricsRes = await axios.get(`${API_BASE}/fp/metrics`, { withCredentials: true });
+            const metricsRes = await axios.get(`${API_BASE}/fp/metrics`, config);
             setMetrics(metricsRes.data);
         } catch (error) {
             console.error("Failed to fetch review queue", error);
@@ -31,7 +33,12 @@ const ReviewQueuePage = () => {
 
     const handleAction = async (id, action) => {
         try {
-            await axios.post(`${API_BASE}/fp/reports/${id}/${action}`, { notes: actionNotes }, { withCredentials: true });
+            const token = localStorage.getItem('token');
+            await axios.post(
+                `${API_BASE}/fp/reports/${id}/${action}`,
+                { notes: actionNotes },
+                { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+            );
             setActionNotes('');
             setExpandedItem(null);
             fetchQueue(); // Refresh list

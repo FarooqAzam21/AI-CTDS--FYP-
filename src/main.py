@@ -43,6 +43,9 @@ app.add_middleware(CSRFMiddleware)
 app.add_middleware(PreventionMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(TrustedProxyMiddleware)
+# Keep CORS outermost so even API error responses and browser preflight
+# requests include the headers Vercel needs to read them.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -50,11 +53,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(TrustedProxyMiddleware)
 
 # Include Routers
 # Root-level health endpoints
 app.include_router(health.router, tags=["health"])
+# The dashboard API base is /api/v1.  Preserve the root probes for Render and
+# expose the same health endpoints under the versioned public API contract.
+app.include_router(health.router, prefix=settings.API_V1_STR, tags=["health"])
 
 app.include_router(auth.router, prefix=settings.API_V1_STR, tags=["auth"])
 app.include_router(monitoring.router, prefix=settings.API_V1_STR, tags=["monitoring"])
