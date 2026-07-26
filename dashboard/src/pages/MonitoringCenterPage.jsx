@@ -32,6 +32,15 @@ const MonitoringCenterPage = () => {
     }
   };
 
+  const detectedIntegrations = snapshot?.detected_integrations || [];
+  const scanAllDetectedWebsites = async () => {
+    for (const integration of detectedIntegrations) {
+      // Scan sequentially to avoid overloading the API and preserve clear
+      // per-site results in the Monitoring panel.
+      await scanWebsite(integration.website_url);
+    }
+  };
+
   return (
     <div style={{ color: '#f8fafc', padding: 24 }}>
       <h2>Monitoring Center</h2>
@@ -42,15 +51,22 @@ const MonitoringCenterPage = () => {
         <div className="glass-card" style={{ padding: 20 }}><strong>Users</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.users ?? 0}</div></div>
       </div>
       <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
-        <h3>Detected API Integrations</h3>
-        <p style={{ color: '#94a3b8', fontSize: 13 }}>
-          Websites are discovered automatically from browser Origin or Referer headers when they call the API.
-        </p>
-        {(snapshot?.detected_integrations || []).length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>No browser website has called an API key yet.</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Detected API Integrations</h3>
+            <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 0 }}>
+              Websites are discovered automatically from browser Origin or Referer headers when they call the API.
+            </p>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={scanAllDetectedWebsites} disabled={detectedIntegrations.length === 0 || scanningUrl !== null}>
+            {scanningUrl ? 'Scanning…' : `Scan detected sites (${detectedIntegrations.length})`}
+          </button>
+        </div>
+        {detectedIntegrations.length === 0 ? (
+          <p style={{ color: '#94a3b8' }}>No browser website has called an API key yet. The scanner enables automatically after the first detected integration.</p>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
-            {snapshot.detected_integrations.map((integration) => {
+            {detectedIntegrations.map((integration) => {
               const result = scanResults[integration.website_url];
               return (
                 <div key={integration.api_key_id} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: 12, border: '1px solid rgba(255,255,255,.08)', borderRadius: 10 }}>
