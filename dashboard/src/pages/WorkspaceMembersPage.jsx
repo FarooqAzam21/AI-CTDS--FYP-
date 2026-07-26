@@ -4,6 +4,7 @@ import { ShieldCheck, UserPlus, Trash2, RefreshCw, Users, CheckCircle, ChevronDo
 import API_BASE from '../config/api'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 
 const roleOptions = ['admin', 'analyst', 'operator', 'viewer']
 
@@ -18,6 +19,7 @@ const RoleSelect = ({ value, onChange, roles, compact = false }) => (
 
 const WorkspaceMembersPage = () => {
   const { user, hasPermission } = useAuth()
+  const { confirm } = useToast()
   const [members, setMembers] = useState([])
   const [email, setEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('viewer')
@@ -77,7 +79,12 @@ const WorkspaceMembersPage = () => {
   }
 
   const removeMember = async (member) => {
-    if (!window.confirm(`Remove ${member.email} from this workspace?`)) return
+    const ok = await confirm(`Remove ${member.email} from this workspace?`, {
+      title: 'Remove member',
+      confirmLabel: 'Remove',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await axios.delete(`${API_BASE}/workspace/member/${member.id}`, { headers })
       await loadMembers()

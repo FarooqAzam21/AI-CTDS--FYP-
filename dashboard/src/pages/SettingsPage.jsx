@@ -3,8 +3,10 @@ import axios from 'axios';
 import { Key, Clock, ShieldAlert, Cpu, Terminal, RefreshCw, Trash2, Check, Settings } from 'lucide-react';
 import API_BASE from '../config/api';
 import PageHeader from '../components/PageHeader';
+import { useToast } from '../context/ToastContext';
 
 const SettingsPage = () => {
+    const { showToast, confirm } = useToast();
     const [apiKey, setApiKey] = useState(null);
     const [keys, setKeys] = useState([]);
     const [label, setLabel] = useState('Production Key');
@@ -18,7 +20,7 @@ const SettingsPage = () => {
     const fetchKeys = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${API_BASE}/workspace/keys`, {
+            const response = await axios.get(`${API_BASE}/api-keys/`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setKeys(response.data);
@@ -31,28 +33,33 @@ const SettingsPage = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${API_BASE}/workspace/keys`, { label }, {
+            const response = await axios.post(`${API_BASE}/api-keys/create`, { label }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setApiKey(response.data.api_key);
             fetchKeys();
         } catch (err) {
-            alert('Failed to generate key');
+            showToast(err.response?.data?.detail || 'Failed to generate key', 'error');
         } finally {
             setLoading(false);
         }
     };
 
     const revokeKey = async (keyId) => {
-        if (!window.confirm('Are you sure? This will break any existing integrations using this key.')) return;
+        const ok = await confirm(
+            'Are you sure? This will break any existing integrations using this key.',
+            { title: 'Revoke API key', confirmLabel: 'Revoke key', danger: true }
+        );
+        if (!ok) return;
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`${API_BASE}/workspace/keys/${keyId}`, {
+            await axios.delete(`${API_BASE}/api-keys/${keyId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchKeys();
+            showToast('API key revoked successfully', 'success');
         } catch (err) {
-            alert('Failed to revoke key');
+            showToast(err.response?.data?.detail || 'Failed to revoke key', 'error');
         }
     };
 

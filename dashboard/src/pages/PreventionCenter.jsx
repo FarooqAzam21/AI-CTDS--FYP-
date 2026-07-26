@@ -6,10 +6,12 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import GLOBAL_API_BASE from '../config/api';
 
 const PreventionCenter = () => {
   const { hasRole } = useAuth();
+  const { showToast, confirm } = useToast();
   const canAct = hasRole(['super_admin', 'workspace_admin', 'security_analyst']);
   const [blockedEntities, setBlockedEntities] = useState([]);
   const [stats, setStats] = useState(null);
@@ -89,7 +91,11 @@ const PreventionCenter = () => {
   };
 
   const handleUnblock = async (entityId) => {
-    if (!window.confirm('Are you sure you want to unblock this entity?')) return;
+    const ok = await confirm('Are you sure you want to unblock this entity?', {
+      title: 'Unblock entity',
+      confirmLabel: 'Unblock',
+    });
+    if (!ok) return;
 
     try {
       await axios.post(
@@ -99,10 +105,10 @@ const PreventionCenter = () => {
       );
       fetchBlockedEntities(pagination.skip);
       fetchStats();
-      alert('Entity unblocked successfully');
+      showToast('Entity unblocked successfully', 'success');
     } catch (error) {
       console.error('Error unblocking entity:', error);
-      alert('Failed to unblock entity');
+      showToast(error.response?.data?.detail || 'Failed to unblock entity', 'error');
     }
   };
 

@@ -230,19 +230,19 @@ def test_valid_key_via_bearer_header(client, active_key):
 # ════════════════════════════════════════════════════════════════════════════
 def test_invalid_api_key_returns_401(client, ):
     resp = client.get(
-        "/api-keys/",
+        "/api/v1/api-keys/",
         headers={"X-API-Key": f"{API_KEY_PREFIX}{'0' * 64}"},
     )
     assert resp.status_code == 401
 
 
 def test_missing_auth_returns_401(client, ):
-    resp = client.get("/api-keys/")
+    resp = client.get("/api/v1/api-keys/")
     assert resp.status_code == 401
 
 
 def test_garbage_api_key_returns_401(client, ):
-    resp = client.get("/api-keys/", headers={"X-API-Key": "not-a-real-key"})
+    resp = client.get("/api/v1/api-keys/", headers={"X-API-Key": "not-a-real-key"})
     assert resp.status_code == 401
 
 
@@ -251,7 +251,7 @@ def test_garbage_api_key_returns_401(client, ):
 # ════════════════════════════════════════════════════════════════════════════
 def test_expired_key_returns_401(client, expired_key):
     raw, _ = expired_key
-    resp = client.get("/api-keys/", headers={"X-API-Key": raw})
+    resp = client.get("/api/v1/api-keys/", headers={"X-API-Key": raw})
     assert resp.status_code == 401
     assert "expired" in resp.json()["detail"].lower()
 
@@ -261,7 +261,7 @@ def test_expired_key_returns_401(client, expired_key):
 # ════════════════════════════════════════════════════════════════════════════
 def test_revoked_key_returns_401(client, revoked_key):
     raw, _ = revoked_key
-    resp = client.get("/api-keys/", headers={"X-API-Key": raw})
+    resp = client.get("/api/v1/api-keys/", headers={"X-API-Key": raw})
     assert resp.status_code == 401
 
 
@@ -294,7 +294,7 @@ def test_usage_count_increments_on_valid_key(client, active_key):
     raw, key_obj = active_key
     initial_id = str(key_obj.id)
     for _ in range(3):
-        client.get("/api-keys/", headers={"X-API-Key": raw})
+        client.get("/api/v1/api-keys/", headers={"X-API-Key": raw})
     # Open a fresh session from the SAME engine to avoid stale cache
     fresh_db = TestingSessionLocal()
     try:
@@ -306,7 +306,7 @@ def test_usage_count_increments_on_valid_key(client, active_key):
 
 def test_last_used_updated_on_valid_key(client, active_key):
     raw, key_obj = active_key
-    client.get("/api-keys/", headers={"X-API-Key": raw})
+    client.get("/api/v1/api-keys/", headers={"X-API-Key": raw})
     fresh_db = TestingSessionLocal()
     try:
         updated = fresh_db.query(APIKey).filter(APIKey.id == key_obj.id).first()
@@ -318,7 +318,7 @@ def test_last_used_updated_on_valid_key(client, active_key):
 def test_last_used_ip_set(client, active_key):
     raw, key_obj = active_key
     client.get(
-        "/api-keys/",
+        "/api/v1/api-keys/",
         headers={"X-API-Key": raw, "X-Forwarded-For": "203.0.113.42"},
     )
     fresh_db = TestingSessionLocal()
@@ -335,7 +335,7 @@ def test_last_used_ip_set(client, active_key):
 # ════════════════════════════════════════════════════════════════════════════
 def test_audit_log_written_on_valid_key(client, active_key):
     raw, key_obj = active_key
-    client.get("/api-keys/", headers={"X-API-Key": raw})
+    client.get("/api/v1/api-keys/", headers={"X-API-Key": raw})
     fresh_db = TestingSessionLocal()
     try:
         logs = fresh_db.query(APIKeyAuditLog).filter(
@@ -384,7 +384,7 @@ def test_jwt_auth_still_accepted(client, db, workspace):
     fake_payload = {"sub": str(user.id), "type": "access"}
     with patch("src.api.deps.jwt.decode", return_value=fake_payload):
         resp = client.get(
-            "/api-keys/",
+            "/api/v1/api-keys/",
             headers={"Authorization": "Bearer fake.jwt.token"},
         )
     # If JWT resolves correctly, the workspace is found and we get 200

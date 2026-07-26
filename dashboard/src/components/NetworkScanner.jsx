@@ -5,8 +5,10 @@ import axios from 'axios';
 import API_BASE from '../config/api';
 import FeedbackButtons from './FeedbackButtons';
 import ScanLimitNotice, { getScanError } from './ScanLimitNotice';
+import { useToast } from '../context/ToastContext';
 
 const NetworkScanner = () => {
+    const { showToast } = useToast();
     const [pcapData, setPcapData] = useState('');
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ const NetworkScanner = () => {
             try {
                 payloadData = typeof pcapData === 'string' ? JSON.parse(pcapData) : pcapData;
             } catch (e) {
-                alert('Invalid JSON format. Please check your input.');
+                showToast('Invalid JSON format. Please check your input.', 'error');
                 setLoading(false);
                 return;
             }

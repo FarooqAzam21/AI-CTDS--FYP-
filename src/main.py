@@ -75,7 +75,7 @@ app.include_router(false_positives.router, prefix=f"{settings.API_V1_STR}/fp", t
 app.include_router(mfa.router, prefix=f"{settings.API_V1_STR}/mfa", tags=["mfa"])
 app.include_router(v1.router)
 app.include_router(v2.router)
-app.include_router(api_keys.router, prefix="/api-keys", tags=["api-keys"])
+app.include_router(api_keys.router, prefix=f"{settings.API_V1_STR}/api-keys", tags=["api-keys"])
 app.include_router(rbac.router, prefix=f"{settings.API_V1_STR}/rbac", tags=["rbac"])
 
 @app.on_event("startup")

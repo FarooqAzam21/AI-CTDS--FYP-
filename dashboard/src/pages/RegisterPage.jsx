@@ -82,6 +82,7 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
     const [showPw,    setShowPw]    = useState(false);
     const [showCpw,   setShowCpw]   = useState(false);
     const [error,     setError]     = useState('');
+    const [success,   setSuccess]   = useState('');
     const [loading,   setLoading]   = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
     const [workspaceMode, setWorkspaceMode] = useState('create');
@@ -93,6 +94,7 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
         const { name, value } = e.target;
         setForm(f => ({ ...f, [name]: value }));
         setFieldErrors(fe => ({ ...fe, [name]: '' }));
+        setSuccess('');
     };
 
     const validate = () => {
@@ -109,6 +111,7 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         const errs = validate();
         if (Object.keys(errs).length) { setFieldErrors(errs); return; }
 
@@ -134,9 +137,10 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
                 localStorage.setItem('token', data.session.access_token);
                 onLogin(data.session.access_token);
             } else {
-                setError('Account created. Check your email to confirm your account, then sign in.');
+                setSuccess('Account created. Check your email to confirm your account, then sign in.');
             }
         } catch (err) {
+            setSuccess('');
             setError(err.message || 'Registration failed. Please try again.');
         } finally {
             setLoading(false);
@@ -145,6 +149,7 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
 
     const handleGoogleSignup = async () => {
         setError('');
+        setSuccess('');
         if (workspaceMode === 'join' && !form.workspace_id.trim()) {
             setFieldErrors({ workspace_id: 'Workspace ID is required to request access.' });
             return;
@@ -263,6 +268,21 @@ const RegisterPage = ({ onLogin, onToggleForm }) => {
                         <h1 className="text-2xl font-extrabold text-white tracking-tight">Create your workspace</h1>
                         <p className="text-[13px] text-slate-500">Fill in the details below to get started.</p>
                     </div>
+
+                    {/* Success banner */}
+                    <AnimatePresence>
+                        {success && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -8, height: 0 }}
+                                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-start gap-3 p-4 bg-[#36D399]/10 border border-[#36D399]/20 rounded-xl overflow-hidden"
+                            >
+                                <CheckCircle size={15} className="text-[#36D399] flex-shrink-0 mt-0.5" />
+                                <p className="text-[13px] text-[#36D399] leading-relaxed">{success}</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Error banner */}
                     <AnimatePresence>

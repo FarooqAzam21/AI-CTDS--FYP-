@@ -149,31 +149,31 @@ def test_viewer_can_access_monitoring(client, ):
 
 def test_viewer_cannot_list_api_keys(client, ):
     """Viewers lack settings:write → must receive 403."""
-    res = client.get("/api-keys/", headers=_auth("viewer"))
+    res = client.get("/api/v1/api-keys/", headers=_auth("viewer"))
     assert res.status_code == 403
 
 
 def test_analyst_cannot_list_api_keys(client, ):
     """Analysts lack settings:write → must receive 403."""
-    res = client.get("/api-keys/", headers=_auth("security_analyst"))
+    res = client.get("/api/v1/api-keys/", headers=_auth("security_analyst"))
     assert res.status_code == 403
 
 
 def test_admin_can_list_api_keys(client, ):
     """Workspace Admin has settings:write → allowed."""
-    res = client.get("/api-keys/", headers=_auth("workspace_admin"))
+    res = client.get("/api/v1/api-keys/", headers=_auth("workspace_admin"))
     assert res.status_code not in (401, 403), f"Unexpected: {res.status_code} {res.text}"
 
 
 def test_super_admin_can_list_api_keys(client, ):
-    res = client.get("/api-keys/", headers=_auth("super_admin"))
+    res = client.get("/api/v1/api-keys/", headers=_auth("super_admin"))
     assert res.status_code not in (401, 403), f"Unexpected: {res.status_code} {res.text}"
 
 
 def test_analyst_cannot_create_api_key(client, ):
-    """POST /api-keys/create requires settings:write → analyst must get 403."""
+    """POST /api/v1/api-keys/create requires settings:write → analyst must get 403."""
     res = client.post(
-        "/api-keys/create",
+        "/api/v1/api-keys/create",
         json={"label": "hacker-key"},
         headers=_auth("security_analyst")
     )
@@ -195,7 +195,7 @@ def test_api_key_cannot_access_api_key_management(client, ):
     """API keys don't have settings:write → must be rejected from key management."""
     raw_key = _state["raw_key"]
     headers = {"Authorization": f"Bearer {raw_key}"}
-    res = client.get("/api-keys/", headers=headers)
+    res = client.get("/api/v1/api-keys/", headers=headers)
     assert res.status_code == 403
 
 

@@ -570,8 +570,12 @@ class RequirePermissions:
                     detail=f"Insufficient permissions. Required: '{req_perm}'.",
                 )
 
-        return ctx
-
+        if ctx.user is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This endpoint requires user (JWT) authentication.",
+            )
+        return ctx.user
 
 
 class RequireRoles:

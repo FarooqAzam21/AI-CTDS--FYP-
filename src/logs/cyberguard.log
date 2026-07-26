@@ -39279,3 +39279,109 @@ ame 'request' is not defined"}
 {"time":"2026-07-25T15:31:02","level":"INFO","logger":"watchfiles.main","message":"1 change detected"}
 {"time":"2026-07-25T15:31:02","level":"INFO","logger":"watchfiles.main","message":"1 change detected"}
 {"time":"2026-07-25T15:31:03","level":"INFO","logger":"watchfiles.main","message":"1 change detected"}
+{"time":"2026-07-26T19:39:12","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=613646db-c4ed-44b8-ac9a-e0bc3b3064fd ip=testclient"}
+{"time":"2026-07-26T19:39:12","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:12","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/agent/history "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:17","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=76ee6007-58b8-480a-821c-8dd3e9ec94e0 ip=testclient"}
+{"time":"2026-07-26T19:39:18","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:18","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/agent/history "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:20","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:20","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:39:22","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:22","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:39:25","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:25","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:39:29","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:29","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:39:32","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:32","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:39:34","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=other-ws-key workspace=5e7828a8-905e-4e17-b1d6-68a4dd64d718 ip=testclient"}
+{"time":"2026-07-26T19:39:34","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:34","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/agent/history "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:37","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=03b8b6e3-e1d0-4717-b54d-faacc3ef3b56 ip=testclient"}
+{"time":"2026-07-26T19:39:37","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:37","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:37","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:38","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=03b8b6e3-e1d0-4717-b54d-faacc3ef3b56 ip=testclient"}
+{"time":"2026-07-26T19:39:38","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:39","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:39","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:40","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=03b8b6e3-e1d0-4717-b54d-faacc3ef3b56 ip=testclient"}
+{"time":"2026-07-26T19:39:40","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:40","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:40","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:43","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=39e11b63-d00c-422d-909f-98d1c6a3647e ip=testclient"}
+{"time":"2026-07-26T19:39:43","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:43","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:43","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:46","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=64255d37-09df-4a63-a8b4-39c1c5564b9d ip=203.0.113.42"}
+{"time":"2026-07-26T19:39:46","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:46","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:46","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:49","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=fdb3ff6d-e311-46d2-a250-ffabd9224be9 ip=testclient"}
+{"time":"2026-07-26T19:39:49","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:39:49","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:49","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:52","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:39:54","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:54","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:39:57","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=test-key workspace=d1e4f41c-0746-4431-b583-363fe0a3fd26 ip=testclient"}
+{"time":"2026-07-26T19:39:57","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:39:57","level":"INFO","logger":"httpx","message":"HTTP Request: POST http://testserver/api/v1/agent/analyze "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:39:58","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:00","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:00","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:40:01","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:05","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:05","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:06","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:09","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:09","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:11","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:13","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:13","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:14","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:17","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:17","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:20","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:23","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:23","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/monitoring "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:40:25","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:30","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:30","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/monitoring "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:31","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:35","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:35","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/monitoring "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:36","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:39","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=68b2c339-2842-467d-9d21-8ae25381890f role=viewer required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:40:39","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:39","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:40:41","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:44","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=34cc1e77-c135-45b4-9921-6b52b4225ded role=analyst required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:40:44","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:44","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:40:45","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:48","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:48","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:49","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:52","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:52","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 200 OK""}
+{"time":"2026-07-26T19:40:54","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:40:57","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=67005933-a3be-4265-9b4e-cb7eb014921e role=analyst required=api_keys:write endpoint=/api/v1/api-keys/create"}
+{"time":"2026-07-26T19:40:58","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:40:58","level":"INFO","logger":"httpx","message":"HTTP Request: POST http://testserver/api/v1/api-keys/create "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:41:00","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:41:02","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=Test API Key workspace=33e13647-5bb0-4000-9e81-4e241fcfc983 ip=testclient"}
+{"time":"2026-07-26T19:41:02","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:41:02","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:41:03","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:41:05","level":"INFO","logger":"src.api.deps","message":"API key auth OK | label=Test API Key workspace=172f618f-daa8-45c7-b951-9f8624945b37 ip=testclient"}
+{"time":"2026-07-26T19:41:05","level":"WARNING","logger":"src.api.deps","message":"Permission denied | user=api_key role=api_key required=api_keys:read endpoint=/api/v1/api-keys/"}
+{"time":"2026-07-26T19:41:05","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:41:05","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/api-keys/ "HTTP/1.1 403 Forbidden""}
+{"time":"2026-07-26T19:41:06","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:41:08","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:41:08","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 401 Unauthorized""}
+{"time":"2026-07-26T19:41:09","level":"INFO","logger":"src.scripts.seed_rbac","message":"RBAC seed complete: +4 roles, +24 permissions, +69 role_permissions"}
+{"time":"2026-07-26T19:41:12","level":"INFO","logger":"src.api.middleware","message":"request_completed"}
+{"time":"2026-07-26T19:41:12","level":"INFO","logger":"httpx","message":"HTTP Request: GET http://testserver/api/v1/reports/security-report "HTTP/1.1 401 Unauthorized""}
