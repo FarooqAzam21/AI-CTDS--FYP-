@@ -42,10 +42,6 @@ const MonitoringCenterPage = () => {
         <div className="glass-card" style={{ padding: 20 }}><strong>Users</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.users ?? 0}</div></div>
       </div>
       <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
-        <h3>Live Metrics</h3>
-        <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1' }}>{JSON.stringify(snapshot?.metrics ?? {}, null, 2)}</pre>
-      </div>
-      <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
         <h3>Detected API Integrations</h3>
         <p style={{ color: '#94a3b8', fontSize: 13 }}>
           Websites are discovered automatically from browser Origin or Referer headers when they call the API.
@@ -71,6 +67,10 @@ const MonitoringCenterPage = () => {
             })}
           </div>
         )}
+      </div>
+      <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
+        <h3>Live Metrics</h3>
+        <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1' }}>{JSON.stringify(snapshot?.metrics ?? {}, null, 2)}</pre>
       </div>
     </div>
   );

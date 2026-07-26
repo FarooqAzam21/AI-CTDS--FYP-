@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import uuid as uuid_lib
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, desc
+from sqlalchemy import and_, or_, desc, func
 
 from src.models.models import Alert, AlertHistory, AuditLog, ScanHistory, ThreatIntel
 from src.utils.audit import AuditLogger
@@ -587,7 +587,7 @@ class AlertService:
         # Top alert types
         top_types = db.query(
             Alert.alert_type,
-            db.func.count(Alert.id).label("count")
+            func.count(Alert.id).label("count")
         ).filter(
             and_(
                 Alert.workspace_id == workspace_id,
@@ -597,7 +597,7 @@ class AlertService:
         
         top_entities = db.query(
             Alert.entity,
-            db.func.count(Alert.id).label("count")
+            func.count(Alert.id).label("count")
         ).filter(
             and_(
                 Alert.workspace_id == workspace_id,
