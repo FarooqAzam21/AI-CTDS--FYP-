@@ -27,6 +27,24 @@ from src.utils.correlation import CorrelationEngine
 router = APIRouter()
 
 
+def require_scan_access(
+    auth: AuthContext = Depends(get_auth_context),
+) -> AuthContext:
+    """Authorize scan requests while preserving the full auth context.
+
+    ``RequirePermissions`` intentionally returns a ``User`` for endpoints that
+    need a human actor. The agent also supports API keys and needs the
+    workspace stored on ``AuthContext``, so it must use this context-preserving
+    dependency instead.
+    """
+    if "scans:create" not in auth.permissions:
+        raise HTTPException(
+            status_code=403,
+            detail="Insufficient permissions. Required: 'scans:create'.",
+        )
+    return auth
+
+
 class AgentAnalyzeRequest(BaseModel):
     type: str = "auto"
     data: Any
@@ -37,7 +55,7 @@ class AgentAnalyzeRequest(BaseModel):
 async def agent_analyze(
     request: AgentAnalyzeRequest,
     db: Session = Depends(deps.get_db),
-    auth: AuthContext = Depends(deps.require_permissions("scans:create")),
+    auth: AuthContext = Depends(require_scan_access),
 ):
     """
     Unified AI Agent endpoint with workspace-based isolation.
