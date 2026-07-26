@@ -38,6 +38,7 @@ import hashlib
 import hmac
 import uuid
 import logging
+from urllib.parse import urlparse
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Generator, Optional, Set
@@ -177,6 +178,7 @@ def _resolve_api_key(raw_key: str, db: Session, request: Request) -> AuthContext
     # ── Update usage stats ───────────────────────────────────────────────
     now = datetime.now(timezone.utc)
     client_ip = _get_client_ip(request)
+    detected_website_url = _get_request_website(request)
     # Cache values we need after the update before any expiry risk
     _cached_label = api_key.label
     _cached_workspace_id = workspace.id
@@ -186,10 +188,12 @@ def _resolve_api_key(raw_key: str, db: Session, request: Request) -> AuthContext
             _text(
                 "UPDATE api_keys SET last_used=:lu, last_used_ip=:ip, "
                 "usage_count=COALESCE(usage_count,0)+1, "
-                "successful_requests=COALESCE(successful_requests,0)+1 "
+                "successful_requests=COALESCE(successful_requests,0)+1, "
+                "detected_website_url=COALESCE(:website, detected_website_url), "
+                "detected_at=CASE WHEN :website IS NULL THEN detected_at ELSE :lu END "
                 "WHERE key_hash=:kh"
             ),
-            {"lu": now, "ip": client_ip, "kh": key_hash},
+            {"lu": now, "ip": client_ip, "website": detected_website_url, "kh": key_hash},
         )
     except Exception:
         pass  # usage tracking is best-effort; never block auth
@@ -211,6 +215,21 @@ def _resolve_api_key(raw_key: str, db: Session, request: Request) -> AuthContext
         role="api_key",
         permissions={"scans:create", "scans:read"},
     )
+
+
+def _get_request_website(request: Request) -> Optional[str]:
+    """Detect a browser integration from its Origin or Referer header.
+
+    Server-to-server callers commonly do not send either header, so the
+    website is intentionally left unset rather than guessed from an IP.
+    """
+    candidate = request.headers.get("origin") or request.headers.get("referer")
+    if not candidate:
+        return None
+    parsed = urlparse(candidate)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+    return f"{parsed.scheme}://{parsed.netloc}"
 
 
 def _resolve_jwt(token: str, db: Session, request: Request) -> AuthContext:

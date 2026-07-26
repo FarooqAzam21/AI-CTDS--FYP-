@@ -64,6 +64,8 @@ class APIKeyListItem(BaseModel):
     label: str
     integration_name: Optional[str]
     website_url: Optional[str]
+    detected_website_url: Optional[str]
+    detected_at: Optional[str]
     is_active: bool
     created_at: Optional[str]
     last_used: Optional[str]
@@ -83,6 +85,8 @@ class APIKeyCreateResponse(BaseModel):
     label: str
     integration_name: Optional[str]
     website_url: Optional[str]
+    detected_website_url: Optional[str]
+    detected_at: Optional[str]
     api_key: str  # plaintext, shown only once
     expires_at: Optional[str]
     message: str = "Store this key securely — it will NOT be shown again."
@@ -93,6 +97,8 @@ class APIKeyStatsResponse(BaseModel):
     label: str
     integration_name: Optional[str]
     website_url: Optional[str]
+    detected_website_url: Optional[str]
+    detected_at: Optional[str]
     is_active: bool
     usage_count: int
     successful_requests: int
@@ -120,6 +126,8 @@ def _key_to_item(k: APIKey) -> APIKeyListItem:
         label=k.label,
         integration_name=k.integration_name,
         website_url=k.website_url,
+        detected_website_url=k.detected_website_url,
+        detected_at=_fmt(k.detected_at),
         is_active=k.is_active,
         created_at=_fmt(k.created_at),
         last_used=_fmt(k.last_used),
@@ -218,6 +226,8 @@ def create_api_key(
         label=new_key.label,
         integration_name=new_key.integration_name,
         website_url=new_key.website_url,
+        detected_website_url=new_key.detected_website_url,
+        detected_at=_fmt(new_key.detected_at),
         api_key=raw_key,
         expires_at=_fmt(expires_at),
     )
@@ -282,6 +292,8 @@ def get_api_key_stats(
         label=key.label,
         integration_name=key.integration_name,
         website_url=key.website_url,
+        detected_website_url=key.detected_website_url,
+        detected_at=_fmt(key.detected_at),
         is_active=key.is_active,
         usage_count=key.usage_count or 0,
         successful_requests=key.successful_requests or 0,
@@ -380,6 +392,8 @@ def rotate_api_key(
         label=key.label,
         integration_name=key.integration_name,
         website_url=key.website_url,
+        detected_website_url=key.detected_website_url,
+        detected_at=_fmt(key.detected_at),
         api_key=raw_key,
         expires_at=_fmt(key.expires_at),
         message=(
