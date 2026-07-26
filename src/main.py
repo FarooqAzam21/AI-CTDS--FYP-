@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.v1 import auth, agent, workspace, stats, alerts, prevention, explanations, hunting, reports, mitre, uba, health, session, false_positives, mfa, monitoring, threats, api_keys, feedback, rbac
 from src.api.v1.versions import v1, v2
@@ -114,6 +114,12 @@ async def root():
         "version": settings.VERSION,
         "docs": "/docs"
     }
+
+
+@app.head("/", include_in_schema=False)
+async def root_health_probe():
+    """Allow Render's lightweight service probe to verify the running app."""
+    return Response(status_code=200)
 
 if __name__ == "__main__":
     import uvicorn
