@@ -128,6 +128,14 @@ class APIKey(Base):
     # Automatically observed from browser Origin/Referer headers on API use.
     detected_website_url = Column(String, nullable=True)
     detected_at = Column(DateTime(timezone=True), nullable=True)
+    # Owner-approved website monitoring. A detected Origin is never enabled
+    # automatically; an administrator must explicitly approve this URL.
+    website_monitoring_enabled = Column(Boolean, default=False, nullable=False)
+    monitoring_interval_hours = Column(Integer, nullable=True)
+    last_website_scan_at = Column(DateTime(timezone=True), nullable=True)
+    next_website_scan_at = Column(DateTime(timezone=True), nullable=True)
+    last_website_scan_verdict = Column(String, nullable=True)
+    last_website_scan_score = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True, index=True)
     # Expiration (None = non-expiring)
     expires_at = Column(DateTime(timezone=True), nullable=True)

@@ -21,7 +21,7 @@ import hashlib
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 from src.api.deps import RequirePermissions, get_current_workspace, get_db
 from src.models.models import APIKey, APIKeyAuditLog, Workspace, User
 from src.utils.audit import AuditLogger
+from src.services.website_monitoring_service import WebsiteMonitoringService
 
 router = APIRouter()
 
@@ -59,6 +60,11 @@ class APIKeyCreateRequest(BaseModel):
     )
 
 
+class WebsiteMonitoringRequest(BaseModel):
+    website_url: str = Field(..., max_length=2048)
+    schedule: Literal["off", "daily", "weekly"] = "off"
+
+
 class APIKeyListItem(BaseModel):
     id: str
     label: str
@@ -75,6 +81,12 @@ class APIKeyListItem(BaseModel):
     failed_requests: int
     last_used_ip: Optional[str]
     rotated_at: Optional[str]
+    website_monitoring_enabled: bool
+    monitoring_interval_hours: Optional[int]
+    last_website_scan_at: Optional[str]
+    next_website_scan_at: Optional[str]
+    last_website_scan_verdict: Optional[str]
+    last_website_scan_score: Optional[int]
 
     class Config:
         from_attributes = True
@@ -109,6 +121,12 @@ class APIKeyStatsResponse(BaseModel):
     created_at: Optional[str]
     rotated_at: Optional[str]
     recent_audit_logs: List[Dict[str, Any]]
+    website_monitoring_enabled: bool
+    monitoring_interval_hours: Optional[int]
+    last_website_scan_at: Optional[str]
+    next_website_scan_at: Optional[str]
+    last_website_scan_verdict: Optional[str]
+    last_website_scan_score: Optional[int]
 
 
 # ── Utilities ──────────────────────────────────────────────────────────────
@@ -137,6 +155,12 @@ def _key_to_item(k: APIKey) -> APIKeyListItem:
         failed_requests=k.failed_requests or 0,
         last_used_ip=k.last_used_ip,
         rotated_at=_fmt(k.rotated_at),
+        website_monitoring_enabled=bool(k.website_monitoring_enabled),
+        monitoring_interval_hours=k.monitoring_interval_hours,
+        last_website_scan_at=_fmt(k.last_website_scan_at),
+        next_website_scan_at=_fmt(k.next_website_scan_at),
+        last_website_scan_verdict=k.last_website_scan_verdict,
+        last_website_scan_score=k.last_website_scan_score,
     )
 
 
@@ -304,7 +328,49 @@ def get_api_key_stats(
         created_at=_fmt(key.created_at),
         rotated_at=_fmt(key.rotated_at),
         recent_audit_logs=audit_entries,
+        website_monitoring_enabled=bool(key.website_monitoring_enabled),
+        monitoring_interval_hours=key.monitoring_interval_hours,
+        last_website_scan_at=_fmt(key.last_website_scan_at),
+        next_website_scan_at=_fmt(key.next_website_scan_at),
+        last_website_scan_verdict=key.last_website_scan_verdict,
+        last_website_scan_score=key.last_website_scan_score,
     )
+
+
+@router.put("/{key_id}/website-monitoring")
+def configure_website_monitoring(
+    key_id: str,
+    payload: WebsiteMonitoringRequest,
+    db: Session = Depends(get_db),
+    workspace: Workspace = Depends(get_current_workspace),
+    _: User = Depends(RequirePermissions("api_keys:write")),
+) -> Any:
+    """Approve a website URL and optionally enable a daily or weekly scan."""
+    key = _get_owned_key(key_id, workspace, db)
+    key.website_url = WebsiteMonitoringService.validate_url(payload.website_url)
+    key.website_monitoring_enabled = payload.schedule != "off"
+    key.monitoring_interval_hours = {"daily": 24, "weekly": 168}.get(payload.schedule)
+    key.next_website_scan_at = (
+        datetime.utcnow() + timedelta(hours=key.monitoring_interval_hours)
+        if key.website_monitoring_enabled else None
+    )
+    db.commit()
+    return {
+        "api_key_id": str(key.id), "website_url": key.website_url,
+        "schedule": payload.schedule, "enabled": key.website_monitoring_enabled,
+        "next_scan_at": _fmt(key.next_website_scan_at),
+    }
+
+
+@router.post("/{key_id}/website-scan")
+async def run_website_scan(
+    key_id: str,
+    db: Session = Depends(get_db),
+    workspace: Workspace = Depends(get_current_workspace),
+    _: User = Depends(RequirePermissions("api_keys:write")),
+) -> Any:
+    """Run an immediate scan for an already approved website."""
+    return await WebsiteMonitoringService.scan(db, _get_owned_key(key_id, workspace, db))
 
 
 @router.delete("/{key_id}", status_code=status.HTTP_200_OK)

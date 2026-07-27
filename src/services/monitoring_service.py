@@ -71,6 +71,13 @@ class MonitoringService:
                     "last_used_ip": key.last_used_ip,
                     "successful_requests": key.successful_requests or 0,
                     "failed_requests": key.failed_requests or 0,
+                    "approved_website_url": key.website_url,
+                    "website_monitoring_enabled": bool(key.website_monitoring_enabled),
+                    "monitoring_interval_hours": key.monitoring_interval_hours,
+                    "last_website_scan_at": key.last_website_scan_at.isoformat() if key.last_website_scan_at else None,
+                    "next_website_scan_at": key.next_website_scan_at.isoformat() if key.next_website_scan_at else None,
+                    "last_website_scan_verdict": key.last_website_scan_verdict,
+                    "last_website_scan_score": key.last_website_scan_score,
                 }
                 for key in api_clients
             ],

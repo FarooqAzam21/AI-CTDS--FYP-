@@ -8,7 +8,7 @@ import {
 import {
     Activity, AlertTriangle, Brain, Download, ShieldAlert, Siren, Zap,
     TrendingUp, Shield, Target, Eye, ArrowUpRight, ArrowDownRight,
-    RefreshCw, Filter, Clock, ChevronRight
+    RefreshCw, Filter, Clock, ChevronRight, Globe, Play, Check
 } from 'lucide-react';
 
 import API_BASE from '../config/api';
@@ -97,32 +97,122 @@ const DashboardPage = () => {
     const [loading, setLoading] = useState(true);
     const [selectedScan, setSelectedScan] = useState(null);
     const [timeRange, setTimeRange] = useState(0);
+    const [apiClients, setApiClients] = useState([]);
+    const [monitoringDrafts, setMonitoringDrafts] = useState({});
+    const [actionLoading, setActionLoading] = useState({});
+
+    const fetchAnalytics = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+            const [summaryResponse, recentResponse, distributionResponse, monitoringResponse] = await Promise.all([
+                axios.get(`${API_BASE}/stats/threat-summary?hours=${timeRange}`, { headers }),
+                axios.get(`${API_BASE}/stats/recent-scans?limit=8`, { headers }),
+                axios.get(`${API_BASE}/stats/threat-distribution?hours=${timeRange}`, { headers }),
+                axios.get(`${API_BASE}/monitoring`, { headers }).catch(err => {
+                    console.error('Failed to fetch monitoring clients on dashboard', err);
+                    return { data: { api_clients: [] } };
+                })
+            ]);
+            setSummary(summaryResponse.data);
+            setRecentScans(recentResponse.data);
+            setDistribution(distributionResponse.data);
+            setApiClients(monitoringResponse.data.api_clients || []);
+        } catch (err) {
+            console.error('Failed to fetch dashboard analytics', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        let active = true;
-        const fetchAnalytics = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const headers = { Authorization: `Bearer ${token}` };
-                const [summaryResponse, recentResponse, distributionResponse] = await Promise.all([
-                    axios.get(`${API_BASE}/stats/threat-summary?hours=${timeRange}`, { headers }),
-                    axios.get(`${API_BASE}/stats/recent-scans?limit=8`, { headers }),
-                    axios.get(`${API_BASE}/stats/threat-distribution?hours=${timeRange}`, { headers })
-                ]);
-                if (!active) return;
-                setSummary(summaryResponse.data);
-                setRecentScans(recentResponse.data);
-                setDistribution(distributionResponse.data);
-            } catch (err) {
-                console.error('Failed to fetch dashboard analytics', err);
-            } finally {
-                if (active) setLoading(false);
-            }
-        };
         fetchAnalytics();
         const intervalId = window.setInterval(fetchAnalytics, 15000);
-        return () => { active = false; window.clearInterval(intervalId); };
+        return () => { window.clearInterval(intervalId); };
     }, [timeRange]);
+
+    useEffect(() => {
+        if (apiClients.length > 0) {
+            const drafts = {};
+            apiClients.forEach(client => {
+                drafts[client.api_key_id] = {
+                    websiteUrl: client.approved_website_url || 'https://orvion.com',
+                    schedule: client.website_monitoring_enabled 
+                        ? (client.monitoring_interval_hours === 168 ? 'weekly' : 'daily') 
+                        : 'off'
+                };
+            });
+            setMonitoringDrafts(prev => ({ ...drafts, ...prev }));
+        }
+    }, [apiClients]);
+
+    const handleUrlChange = (clientId, value) => {
+        setMonitoringDrafts(prev => ({
+            ...prev,
+            [clientId]: { ...prev[clientId], websiteUrl: value }
+        }));
+    };
+
+    const handleScheduleChange = async (client, newSchedule) => {
+        const draft = monitoringDrafts[client.api_key_id] || {
+            websiteUrl: client.approved_website_url || 'https://orvion.com',
+            schedule: 'off'
+        };
+        
+        // Update local state immediately
+        setMonitoringDrafts(prev => ({
+            ...prev,
+            [client.api_key_id]: { ...prev[client.api_key_id], schedule: newSchedule }
+        }));
+        
+        // Save to backend
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+            await axios.put(`${API_BASE}/api-keys/${client.api_key_id}/website-monitoring`, {
+                website_url: draft.websiteUrl,
+                schedule: newSchedule
+            }, { headers });
+            fetchAnalytics();
+        } catch (err) {
+            console.error('Failed to update monitoring schedule', err);
+        }
+    };
+
+    const handleApproveUrl = async (client) => {
+        const draft = monitoringDrafts[client.api_key_id] || {
+            websiteUrl: 'https://orvion.com',
+            schedule: 'off'
+        };
+        setActionLoading(prev => ({ ...prev, [client.api_key_id]: 'approving' }));
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+            await axios.put(`${API_BASE}/api-keys/${client.api_key_id}/website-monitoring`, {
+                website_url: draft.websiteUrl,
+                schedule: draft.schedule
+            }, { headers });
+            fetchAnalytics();
+        } catch (err) {
+            console.error('Failed to approve website URL', err);
+        } finally {
+            setActionLoading(prev => ({ ...prev, [client.api_key_id]: null }));
+        }
+    };
+
+    const handleRunScan = async (client) => {
+        setActionLoading(prev => ({ ...prev, [client.api_key_id]: 'scanning' }));
+        try {
+            const token = localStorage.getItem('token');
+            const headers = { Authorization: `Bearer ${token}` };
+            await axios.post(`${API_BASE}/api-keys/${client.api_key_id}/website-scan`, {}, { headers });
+            fetchAnalytics();
+        } catch (err) {
+            console.error('Failed to run website scan', err);
+        } finally {
+            setActionLoading(prev => ({ ...prev, [client.api_key_id]: null }));
+        }
+    };
 
     const stats = useMemo(() => {
         if (!summary) return [
@@ -563,6 +653,198 @@ const DashboardPage = () => {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </motion.div>
+
+            {/* API Connection & Website Monitoring Widget */}
+            <motion.div
+                className="card analytics-panel"
+                style={{ marginBottom: '24px' }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+            >
+                <div className="card-header">
+                    <div className="card-title">
+                        <Zap size={16} style={{ color: '#A78BFA' }} /> API Client & Website Monitoring
+                    </div>
+                </div>
+                <div className="p-6">
+                    {apiClients.length === 0 ? (
+                        <div className="text-center py-6 text-gray-500 text-xs font-mono">
+                            No API clients configured. Create a key in Settings to configure monitoring.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-6">
+                            {apiClients.map(client => {
+                                const draft = monitoringDrafts[client.api_key_id] || {
+                                    websiteUrl: client.approved_website_url || 'https://orvion.com',
+                                    schedule: client.website_monitoring_enabled 
+                                        ? (client.monitoring_interval_hours === 168 ? 'weekly' : 'daily') 
+                                        : 'off'
+                                };
+                                const isConnected = client.successful_requests > 0 || client.last_used;
+                                const isScanning = actionLoading[client.api_key_id] === 'scanning';
+                                const isApproving = actionLoading[client.api_key_id] === 'approving';
+
+                                return (
+                                    <div 
+                                        key={client.api_key_id} 
+                                        className="p-5 border border-white/5 bg-[#111622]/40 rounded-xl"
+                                        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+                                    >
+                                        {/* Row 1: Key Metadata & Status */}
+                                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
+                                            <div>
+                                                <h4 className="font-bold text-white text-sm">{client.label}</h4>
+                                                <p className="text-[10px] text-gray-500 font-mono">ID: {client.api_key_id}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                    isConnected 
+                                                        ? 'bg-cyber-success/15 text-cyber-success border border-cyber-success/20' 
+                                                        : 'bg-white/5 text-gray-400 border border-white/10'
+                                                }`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-cyber-success' : 'bg-gray-400'}`} style={{ boxShadow: isConnected ? '0 0 6px #36D399' : 'none' }} />
+                                                    {isConnected ? 'Connected' : 'Not Connected'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Connection metrics & Website config */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Column A: Connection info */}
+                                            <div className="space-y-2 text-xs font-mono bg-black/25 p-3.5 rounded-lg border border-white/5">
+                                                <div className="text-[10px] font-bold text-accent uppercase tracking-wider mb-2">Connection Metrics</div>
+                                                <div className="flex justify-between py-1 border-b border-white/5">
+                                                    <span className="text-gray-400 font-bold">Connected IP:</span>
+                                                    <span className="text-white font-bold">{client.last_used_ip || '—'}</span>
+                                                </div>
+                                                <div className="flex justify-between py-1 border-b border-white/5">
+                                                    <span className="text-gray-400 font-bold">Last Request:</span>
+                                                    <span className="text-white font-bold">
+                                                        {client.last_used ? new Date(client.last_used).toLocaleString() : 'Never'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between py-1">
+                                                    <span className="text-gray-400 font-bold">API Scan Count:</span>
+                                                    <span className="text-cyber-info font-bold">{client.successful_requests}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Column B: Website monitor setup */}
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="block text-[10px] font-bold text-accent uppercase tracking-wider">
+                                                        Approved Website URL
+                                                    </label>
+                                                    <div className="flex gap-2">
+                                                        <input 
+                                                            type="text"
+                                                            className="glass-input text-xs py-1.5 flex-1"
+                                                            value={draft.websiteUrl}
+                                                            onChange={(e) => handleUrlChange(client.api_key_id, e.target.value)}
+                                                            placeholder="https://orvion.com"
+                                                        />
+                                                        <button 
+                                                            className="btn btn-secondary py-1 text-xs px-3"
+                                                            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                                                            onClick={() => handleApproveUrl(client)}
+                                                            disabled={isApproving || !draft.websiteUrl.trim()}
+                                                        >
+                                                            {isApproving ? 'Saving...' : 'Approve'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold text-accent uppercase tracking-wider mb-1.5">
+                                                            Schedule
+                                                        </label>
+                                                        <select
+                                                            className="select-control text-xs w-full py-1.5"
+                                                            value={draft.schedule}
+                                                            onChange={(e) => handleScheduleChange(client, e.target.value)}
+                                                        >
+                                                            <option value="off">Manual scan only</option>
+                                                            <option value="daily">Daily</option>
+                                                            <option value="weekly">Weekly</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="flex items-end">
+                                                        <button
+                                                            className="btn btn-primary text-xs w-full py-2 flex items-center justify-center gap-1.5"
+                                                            onClick={() => handleRunScan(client)}
+                                                            disabled={isScanning || !client.approved_website_url}
+                                                            title={!client.approved_website_url ? "Please enter and approve a URL first" : "Trigger an immediate manual scan"}
+                                                        >
+                                                            {isScanning ? (
+                                                                <RefreshCw size={12} className="animate-spin" />
+                                                            ) : (
+                                                                <Play size={12} />
+                                                            )}
+                                                            Scan Now
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 3: Website Scan Telemetry */}
+                                        <div className="bg-black/20 border border-white/5 p-3 rounded-lg flex flex-wrap gap-x-6 gap-y-2 justify-between items-center text-xs font-mono">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-gray-400 font-bold">Approved Website:</span>
+                                                <span className="text-cyber-info font-bold">
+                                                    {client.approved_website_url ? (
+                                                        <a href={client.approved_website_url} target="_blank" rel="noreferrer" className="hover:underline">
+                                                            {client.approved_website_url}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-gray-500 italic">None approved yet</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                                <div>
+                                                    <span className="text-gray-400 font-bold">Last Scan: </span>
+                                                    <span className="text-white">
+                                                        {client.last_website_scan_at ? new Date(client.last_website_scan_at).toLocaleString() : 'Never'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400 font-bold">Next Scan: </span>
+                                                    <span className="text-white">
+                                                        {client.next_website_scan_at ? new Date(client.next_website_scan_at).toLocaleString() : 'Not scheduled'}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-400 font-bold">Total API Scans: </span>
+                                                    <span className="text-cyber-info font-bold">{client.successful_requests}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <span className="text-gray-400 font-bold">Results: </span>
+                                                    {client.last_website_scan_verdict ? (
+                                                        <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] uppercase ml-1 ${
+                                                            client.last_website_scan_verdict === 'SAFE' 
+                                                                ? 'bg-cyber-success/15 text-cyber-success border border-cyber-success/20' 
+                                                                : client.last_website_scan_verdict === 'SUSPICIOUS' 
+                                                                ? 'bg-cyber-warning/15 text-cyber-warning border border-cyber-warning/20' 
+                                                                : 'bg-cyber-critical/15 text-cyber-critical border border-cyber-critical/20'
+                                                        }`}>
+                                                            {client.last_website_scan_verdict} ({client.last_website_scan_score}/100)
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-500 italic ml-1">None</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </motion.div>
 

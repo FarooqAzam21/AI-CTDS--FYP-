@@ -9,6 +9,8 @@ const MonitoringCenterPage = () => {
   const [scanResults, setScanResults] = useState({});
   const [manualWebsiteUrl, setManualWebsiteUrl] = useState('');
   const [manualUrlError, setManualUrlError] = useState('');
+  const [integrationDrafts, setIntegrationDrafts] = useState({});
+  const [savingIntegration, setSavingIntegration] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -44,6 +46,38 @@ const MonitoringCenterPage = () => {
 
   const detectedIntegrations = snapshot?.detected_integrations || [];
   const apiClients = snapshot?.api_clients || [];
+  const integrationDraft = (client) => integrationDrafts[client.api_key_id] || {
+    websiteUrl: client.approved_website_url || '',
+    schedule: client.website_monitoring_enabled ? (client.monitoring_interval_hours === 168 ? 'weekly' : 'daily') : 'off',
+  };
+  const updateIntegrationDraft = (client, field, value) => setIntegrationDrafts((drafts) => ({
+    ...drafts,
+    [client.api_key_id]: { ...integrationDraft(client), [field]: value },
+  }));
+  const saveIntegration = async (client) => {
+    const draft = integrationDraft(client);
+    setSavingIntegration(client.api_key_id);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_BASE}/api-keys/${client.api_key_id}/website-monitoring`, {
+        website_url: draft.websiteUrl, schedule: draft.schedule,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      window.location.reload();
+    } catch (error) {
+      setScanResults((results) => ({ ...results, [`integration-${client.api_key_id}`]: { label: 'SAVE FAILED' } }));
+    } finally { setSavingIntegration(null); }
+  };
+  const scanApprovedWebsite = async (client) => {
+    setSavingIntegration(client.api_key_id);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_BASE}/api-keys/${client.api_key_id}/website-scan`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setScanResults((results) => ({ ...results, [`integration-${client.api_key_id}`]: response.data.agent_verdict }));
+      window.location.reload();
+    } catch (error) {
+      setScanResults((results) => ({ ...results, [`integration-${client.api_key_id}`]: { label: 'SCAN FAILED' } }));
+    } finally { setSavingIntegration(null); }
+  };
   const startManualWebsiteScan = async () => {
     let parsedUrl;
     try {
@@ -95,6 +129,18 @@ const MonitoringCenterPage = () => {
                 <span style={{ color: client.successful_requests > 0 ? '#34d399' : '#94a3b8', fontSize: 13, fontWeight: 700 }}>
                   {client.successful_requests > 0 ? `Connected · ${client.successful_requests} successful request${client.successful_requests === 1 ? '' : 's'}` : 'Not connected yet'}
                 </span>
+                <div style={{ flexBasis: '100%', display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 130px auto auto', gap: 8, alignItems: 'center' }}>
+                  <input value={integrationDraft(client).websiteUrl} onChange={(event) => updateIntegrationDraft(client, 'websiteUrl', event.target.value)} placeholder="Approved website URL" aria-label={`Approved website URL for ${client.label}`} style={{ minWidth: 0, borderRadius: 7, border: '1px solid rgba(255,255,255,.15)', padding: '8px 10px', background: '#111827', color: '#f8fafc' }} />
+                  <select value={integrationDraft(client).schedule} onChange={(event) => updateIntegrationDraft(client, 'schedule', event.target.value)} style={{ borderRadius: 7, padding: '8px', background: '#111827', color: '#f8fafc' }}>
+                    <option value="off">Manual only</option><option value="daily">Daily</option><option value="weekly">Weekly</option>
+                  </select>
+                  <button className="btn btn-primary btn-sm" onClick={() => saveIntegration(client)} disabled={savingIntegration === client.api_key_id || !integrationDraft(client).websiteUrl.trim()}>{savingIntegration === client.api_key_id ? 'Saving…' : 'Approve'}</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => scanApprovedWebsite(client)} disabled={savingIntegration === client.api_key_id || !client.approved_website_url}>{savingIntegration === client.api_key_id ? 'Scanning…' : 'Scan now'}</button>
+                </div>
+                <div style={{ flexBasis: '100%', color: '#94a3b8', fontSize: 12 }}>
+                  Last website scan: {client.last_website_scan_at ? new Date(client.last_website_scan_at).toLocaleString() : 'Never'}{client.last_website_scan_verdict ? ` · ${client.last_website_scan_verdict} (${client.last_website_scan_score}/100)` : ''} · Next scan: {client.next_website_scan_at ? new Date(client.next_website_scan_at).toLocaleString() : 'Not scheduled'}
+                  {scanResults[`integration-${client.api_key_id}`] && <span style={{ color: scanResults[`integration-${client.api_key_id}`].label === 'SCAN FAILED' ? '#fb7185' : '#34d399' }}> · {scanResults[`integration-${client.api_key_id}`].label}</span>}
+                </div>
               </div>
             ))}
           </div>
