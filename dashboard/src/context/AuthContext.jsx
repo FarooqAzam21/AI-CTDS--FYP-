@@ -3,6 +3,7 @@ import API_BASE from '../config/api';
 import { supabase } from '../config/supabaseClient';
 
 const AuthContext = createContext(null);
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
 const roleAliases = {
   super_admin: 'owner',
@@ -39,10 +40,20 @@ export const AuthProvider = ({ children }) => {
       if (session) {
         setToken(session.access_token);
         if (event === 'SIGNED_IN') {
-          fetch(`${API_BASE}/me/record-login`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${session.access_token}` }
-          }).catch((error) => console.warn('Google login tracking failed:', error));
+          // Supabase can emit SIGNED_IN more than once while restoring a
+          // session. Record one real login per browser tab/session instead of
+          // inflating the IP-tracking login counter on every app reload.
+          const marker = `cyberguard:login-recorded:${session.user.id}`;
+          if (!sessionStorage.getItem(marker)) {
+            sessionStorage.setItem(marker, '1');
+            fetch(`${API_BASE}/me/record-login`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${session.access_token}` }
+            }).catch((error) => {
+              sessionStorage.removeItem(marker);
+              console.warn('Google login tracking failed:', error);
+            });
+          }
         }
       }
     });
@@ -64,6 +75,29 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setLoading(false);
     }
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    let timer;
+    const signOutForInactivity = async () => {
+      await supabase.auth.signOut();
+      setToken(null);
+      window.alert('You were signed out after 15 minutes of inactivity.');
+    };
+    const resetTimer = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(signOutForInactivity, INACTIVITY_TIMEOUT_MS);
+    };
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((event) => window.addEventListener(event, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      window.clearTimeout(timer);
+      activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
+    };
   }, [token]);
 
   const fetchUserProfile = async (authToken) => {

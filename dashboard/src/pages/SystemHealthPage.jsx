@@ -72,15 +72,6 @@ const SystemHealthPage = () => {
     const [healthData, setHealthData] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const metricsData = {
-        cache_hit_rate: 0.87,
-        fp_rate_24h: 0.03,
-        avg_risk_score: 45.2,
-        total_scans: 12450,
-        uptime: '99.97%',
-        avg_latency: '14ms',
-    };
-
     useEffect(() => {
         const fetchHealth = async () => {
             try {
@@ -98,6 +89,8 @@ const SystemHealthPage = () => {
     }, []);
 
     const overallStatus = healthData?.status || 'unknown';
+    const performance = healthData?.performance || {};
+    const percent = (value, digits = 1) => value === null || value === undefined ? '—' : `${(value * 100).toFixed(digits)}%`;
 
     return (
         <div className="space-y-6">
@@ -165,10 +158,10 @@ const SystemHealthPage = () => {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                             {[
-                                { label: 'URL Classifier',   val: '94%', color: '#5AA9FF',  sub: 'Random Forest · 500k+ indicators' },
-                                { label: 'Email LSTM',       val: '91%', color: '#FF8C42',  sub: 'TF-IDF + LSTM · NLP pipeline' },
-                                { label: 'Network IDS',      val: '92%', color: '#FF6A3D',  sub: 'Flow classifier · Real-time' },
-                                { label: 'Web Attack',       val: '96%', color: '#36D399',  sub: 'HTTP log parser · OWASP Top 10' },
+                                { label: 'URL Classifier',   val: 'Ready', color: '#5AA9FF',  sub: 'Model loaded and available' },
+                                { label: 'Email Detector',   val: 'Ready', color: '#FF8C42',  sub: 'Model loaded and available' },
+                                { label: 'Network IDS',      val: 'Ready', color: '#FF6A3D',  sub: 'Model loaded and available' },
+                                { label: 'Web Attack',       val: 'Ready', color: '#36D399',  sub: 'Model loaded and available' },
                             ].map((e, i) => (
                                 <motion.div
                                     key={e.label}
@@ -187,7 +180,7 @@ const SystemHealthPage = () => {
                                     <div style={{ height: '3px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '14px', overflow: 'hidden' }}>
                                         <motion.div
                                             initial={{ width: 0 }}
-                                            animate={{ width: e.val }}
+                                            animate={{ width: '100%' }}
                                             transition={{ duration: 0.9, delay: i * 0.07 + 0.3 }}
                                             style={{ height: '100%', borderRadius: '2px', background: `linear-gradient(90deg, ${e.color}, ${e.color}88)` }}
                                         />
@@ -203,11 +196,11 @@ const SystemHealthPage = () => {
                             Performance Metrics
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
-                            <MetricCard label="Cache Hit Rate" value={`${(metricsData.cache_hit_rate * 100).toFixed(0)}%`} sub="↑ 2.1% vs yesterday" color="#36D399" icon={TrendingUp} delay={0} />
-                            <MetricCard label="False Positive Rate" value={`${(metricsData.fp_rate_24h * 100).toFixed(1)}%`} sub="↓ 0.5% improvement" color="#FF6A3D" icon={Activity} delay={0.07} />
-                            <MetricCard label="Total Scans (24h)" value={metricsData.total_scans.toLocaleString()} sub="Across all vectors" color="#5AA9FF" icon={Server} delay={0.14} />
-                            <MetricCard label="Platform Uptime" value={metricsData.uptime} sub="30-day rolling average" color="#A78BFA" icon={Zap} delay={0.21} />
-                            <MetricCard label="Avg Inference" value={metricsData.avg_latency} sub="End-to-end pipeline" color="#FFC857" icon={Clock} delay={0.28} />
+                            <MetricCard label="Cache Hit Rate" value={percent(performance.cache_hit_rate, 0)} sub="Since service start" color="#36D399" icon={TrendingUp} delay={0} />
+                            <MetricCard label="False Positive Rate" value={percent(performance.false_positive_rate_24h)} sub="Analyst feedback, last 24h" color="#FF6A3D" icon={Activity} delay={0.07} />
+                            <MetricCard label="Total Scans (24h)" value={(performance.total_scans_24h ?? 0).toLocaleString()} sub="All workspaces" color="#5AA9FF" icon={Server} delay={0.14} />
+                            <MetricCard label="Platform Uptime" value="—" sub="Not yet collected" color="#A78BFA" icon={Zap} delay={0.21} />
+                            <MetricCard label="Avg Inference" value={performance.average_inference_ms === null || performance.average_inference_ms === undefined ? '—' : `${performance.average_inference_ms}ms`} sub="Since service start" color="#FFC857" icon={Clock} delay={0.28} />
                             <MetricCard label="Redis Latency" value={`${healthData?.services?.redis?.latency_ms || '—'}ms`} sub="Cache response time" color="#36D399" icon={Database} delay={0.35} />
                         </div>
                     </div>

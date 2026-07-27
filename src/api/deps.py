@@ -188,7 +188,6 @@ def _resolve_api_key(raw_key: str, db: Session, request: Request) -> AuthContext
             _text(
                 "UPDATE api_keys SET last_used=:lu, last_used_ip=:ip, "
                 "usage_count=COALESCE(usage_count,0)+1, "
-                "successful_requests=COALESCE(successful_requests,0)+1, "
                 "detected_website_url=COALESCE(:website, detected_website_url), "
                 "detected_at=CASE WHEN :website IS NULL THEN detected_at ELSE :lu END "
                 "WHERE key_hash=:kh"

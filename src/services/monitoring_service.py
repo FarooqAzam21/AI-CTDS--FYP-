@@ -25,6 +25,12 @@ class MonitoringService:
             .order_by(APIKey.detected_at.desc())
             .all()
         )
+        api_clients = (
+            db.query(APIKey)
+            .filter(APIKey.workspace_id == workspace_id)
+            .order_by(APIKey.last_used.desc())
+            .all()
+        )
         return {
                 "timestamp": datetime.utcnow().isoformat(),
                 "metrics": metrics.get_metrics(),
@@ -50,5 +56,16 @@ class MonitoringService:
                     "last_detected_at": key.detected_at.isoformat() if key.detected_at else None,
                 }
                 for key in integrations
+            ],
+            "api_clients": [
+                {
+                    "api_key_id": str(key.id),
+                    "label": key.label,
+                    "last_used": key.last_used.isoformat() if key.last_used else None,
+                    "last_used_ip": key.last_used_ip,
+                    "successful_requests": key.successful_requests or 0,
+                    "failed_requests": key.failed_requests or 0,
+                }
+                for key in api_clients
             ],
         }

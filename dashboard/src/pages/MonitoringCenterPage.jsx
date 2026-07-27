@@ -33,6 +33,7 @@ const MonitoringCenterPage = () => {
   };
 
   const detectedIntegrations = snapshot?.detected_integrations || [];
+  const apiClients = snapshot?.api_clients || [];
   const scanAllDetectedWebsites = async () => {
     for (const integration of detectedIntegrations) {
       // Scan sequentially to avoid overloading the API and preserve clear
@@ -49,6 +50,29 @@ const MonitoringCenterPage = () => {
         <div className="glass-card" style={{ padding: 20 }}><strong>Alerts</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.alerts ?? 0}</div></div>
         <div className="glass-card" style={{ padding: 20 }}><strong>Scans</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.scans ?? 0}</div></div>
         <div className="glass-card" style={{ padding: 20 }}><strong>Users</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.users ?? 0}</div></div>
+      </div>
+      <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
+        <h3>Connected API Clients</h3>
+        <p style={{ color: '#94a3b8', fontSize: 13 }}>
+          A recent successful request proves that the client is connected to CyberGuard. This works for Orvion server-to-server calls.
+        </p>
+        {apiClients.length === 0 ? (
+          <p style={{ color: '#94a3b8' }}>No API credentials have been used yet.</p>
+        ) : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {apiClients.map((client) => (
+              <div key={client.api_key_id} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: 12, border: '1px solid rgba(255,255,255,.08)', borderRadius: 10 }}>
+                <div>
+                  <strong>{client.label}</strong>
+                  <div style={{ color: '#94a3b8', fontSize: 12 }}>Last request: {client.last_used ? new Date(client.last_used).toLocaleString() : 'Never'} · IP: {client.last_used_ip || '—'}</div>
+                </div>
+                <span style={{ color: client.successful_requests > 0 ? '#34d399' : '#94a3b8', fontSize: 13, fontWeight: 700 }}>
+                  {client.successful_requests > 0 ? `Connected · ${client.successful_requests} successful request${client.successful_requests === 1 ? '' : 's'}` : 'Not connected yet'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
