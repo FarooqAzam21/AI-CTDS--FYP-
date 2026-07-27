@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from src.api import deps
 from src.api.deps import RequirePermissions
-from src.models.models import AuditLog, ScanHistory, Workspace, User
+from src.models.models import ScanHistory, Workspace, User
 
 router = APIRouter()
 
@@ -97,11 +97,9 @@ async def get_threat_summary(
             if attack_type:
                 attack_type_counts[attack_type] = attack_type_counts.get(attack_type, 0) + 1
 
-        api_usage = db.query(
-            func.count(AuditLog.id)
-        ).filter(
-            AuditLog.workspace_id == workspace.id,
-            AuditLog.module.in_(["gateway", "network_prevention"]),
+        api_usage = db.query(func.count(ScanHistory.id)).filter(
+            ScanHistory.workspace_id == workspace.id,
+            ScanHistory.user_id.is_(None),
         ).scalar() or 0
 
         alerts = db.query(func.count(ScanHistory.id)).filter(
@@ -178,12 +176,10 @@ async def get_threat_summary(
         if attack_type:
             attack_type_counts[attack_type] = attack_type_counts.get(attack_type, 0) + 1
 
-    api_usage = db.query(
-        func.count(AuditLog.id)
-    ).filter(
-        AuditLog.workspace_id == workspace.id,
-        AuditLog.module.in_(["gateway", "network_prevention"]),
-        AuditLog.created_at >= time_window,
+    api_usage = db.query(func.count(ScanHistory.id)).filter(
+        ScanHistory.workspace_id == workspace.id,
+        ScanHistory.user_id.is_(None),
+        ScanHistory.created_at >= time_window,
     ).scalar() or 0
 
     alerts = db.query(func.count(ScanHistory.id)).filter(

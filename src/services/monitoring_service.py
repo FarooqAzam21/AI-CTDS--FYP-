@@ -10,9 +10,13 @@ from src.utils.metrics_collector import metrics
 class MonitoringService:
     @staticmethod
     def get_system_snapshot(db, workspace_id) -> Dict[str, Any]:
-        alert_count = db.query(Alert).count()
-        scan_count = db.query(ScanHistory).count()
-        user_count = db.query(User).count()
+        alert_count = db.query(Alert).filter(Alert.workspace_id == workspace_id).count()
+        scan_count = db.query(ScanHistory).filter(ScanHistory.workspace_id == workspace_id).count()
+        api_scan_count = db.query(ScanHistory).filter(
+            ScanHistory.workspace_id == workspace_id,
+            ScanHistory.user_id.is_(None),
+        ).count()
+        user_count = db.query(User).filter(User.workspace_id == workspace_id).count()
         recent_alerts = db.query(Alert).filter(
             Alert.workspace_id == workspace_id
         ).order_by(Alert.created_at.desc()).limit(5).all()
@@ -37,6 +41,8 @@ class MonitoringService:
                 "counts": {
                     "alerts": alert_count,
                     "scans": scan_count,
+                    "api_scans": api_scan_count,
+                    "manual_scans": scan_count - api_scan_count,
                     "users": user_count,
                 },
                 "recent_alerts": [

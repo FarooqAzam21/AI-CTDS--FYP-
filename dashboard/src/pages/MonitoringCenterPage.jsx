@@ -7,6 +7,8 @@ const MonitoringCenterPage = () => {
   const [snapshot, setSnapshot] = useState(null);
   const [scanningUrl, setScanningUrl] = useState(null);
   const [scanResults, setScanResults] = useState({});
+  const [manualWebsiteUrl, setManualWebsiteUrl] = useState('');
+  const [manualUrlError, setManualUrlError] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -25,6 +27,14 @@ const MonitoringCenterPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setScanResults((results) => ({ ...results, [websiteUrl]: response.data.agent_verdict }));
+      setSnapshot((current) => current ? {
+        ...current,
+        counts: {
+          ...current.counts,
+          scans: (current.counts?.scans || 0) + 1,
+          manual_scans: (current.counts?.manual_scans || 0) + 1,
+        },
+      } : current);
     } catch (error) {
       setScanResults((results) => ({ ...results, [websiteUrl]: { label: 'SCAN FAILED' } }));
     } finally {
@@ -34,6 +44,22 @@ const MonitoringCenterPage = () => {
 
   const detectedIntegrations = snapshot?.detected_integrations || [];
   const apiClients = snapshot?.api_clients || [];
+  const startManualWebsiteScan = async () => {
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(manualWebsiteUrl.trim());
+    } catch {
+      setManualUrlError('Enter a complete website URL, for example https://example.com.');
+      return;
+    }
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      setManualUrlError('Only http and https website URLs can be scanned.');
+      return;
+    }
+    setManualUrlError('');
+    setManualWebsiteUrl(parsedUrl.href);
+    await scanWebsite(parsedUrl.href);
+  };
   const scanAllDetectedWebsites = async () => {
     for (const integration of detectedIntegrations) {
       // Scan sequentially to avoid overloading the API and preserve clear
@@ -48,7 +74,7 @@ const MonitoringCenterPage = () => {
       <p style={{ color: '#94a3b8' }}>Operational telemetry for the production security platform.</p>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginTop: 16 }}>
         <div className="glass-card" style={{ padding: 20 }}><strong>Alerts</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.alerts ?? 0}</div></div>
-        <div className="glass-card" style={{ padding: 20 }}><strong>Scans</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.scans ?? 0}</div></div>
+        <div className="glass-card" style={{ padding: 20 }}><strong>Scans</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.scans ?? 0}</div><div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>{snapshot?.counts?.api_scans ?? 0} API scans · {snapshot?.counts?.manual_scans ?? 0} dashboard scans</div></div>
         <div className="glass-card" style={{ padding: 20 }}><strong>Users</strong><div style={{ fontSize: 28 }}>{snapshot?.counts?.users ?? 0}</div></div>
       </div>
       <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
@@ -64,7 +90,7 @@ const MonitoringCenterPage = () => {
               <div key={client.api_key_id} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'space-between', padding: 12, border: '1px solid rgba(255,255,255,.08)', borderRadius: 10 }}>
                 <div>
                   <strong>{client.label}</strong>
-                  <div style={{ color: '#94a3b8', fontSize: 12 }}>Last request: {client.last_used ? new Date(client.last_used).toLocaleString() : 'Never'} · IP: {client.last_used_ip || '—'}</div>
+                  <div style={{ color: '#94a3b8', fontSize: 12 }}>Last request: {client.last_used ? new Date(client.last_used).toLocaleString() : 'Never'} · IP: {client.last_used_ip || '—'} · API scans: {client.successful_requests}</div>
                 </div>
                 <span style={{ color: client.successful_requests > 0 ? '#34d399' : '#94a3b8', fontSize: 13, fontWeight: 700 }}>
                   {client.successful_requests > 0 ? `Connected · ${client.successful_requests} successful request${client.successful_requests === 1 ? '' : 's'}` : 'Not connected yet'}
@@ -73,6 +99,24 @@ const MonitoringCenterPage = () => {
             ))}
           </div>
         )}
+      </div>
+      <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
+        <h3 style={{ marginTop: 0 }}>Manual Website Scan</h3>
+        <p style={{ color: '#94a3b8', fontSize: 13 }}>Enter a website you own or are authorized to assess. This button is always available and creates a dashboard scan.</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          <input
+            value={manualWebsiteUrl}
+            onChange={(event) => { setManualWebsiteUrl(event.target.value); setManualUrlError(''); }}
+            placeholder="https://your-website.example"
+            aria-label="Website URL to scan"
+            style={{ flex: '1 1 320px', minWidth: 0, borderRadius: 8, border: '1px solid rgba(255,255,255,.15)', padding: '10px 12px', background: '#111827', color: '#f8fafc' }}
+          />
+          <button className="btn btn-primary btn-sm" onClick={startManualWebsiteScan} disabled={scanningUrl !== null || !manualWebsiteUrl.trim()}>
+            {scanningUrl ? 'Scanning…' : 'Scan website'}
+          </button>
+        </div>
+        {manualUrlError && <p style={{ color: '#fb7185', fontSize: 12, marginBottom: 0 }}>{manualUrlError}</p>}
+        {scanResults[manualWebsiteUrl] && <p style={{ color: scanResults[manualWebsiteUrl].label === 'SCAN FAILED' ? '#fb7185' : '#34d399', fontSize: 12, marginBottom: 0 }}>Scan: {scanResults[manualWebsiteUrl].label}{scanResults[manualWebsiteUrl].score !== undefined ? ` (${scanResults[manualWebsiteUrl].score}/100)` : ''}</p>}
       </div>
       <div className="glass-card" style={{ padding: 20, marginTop: 16 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
